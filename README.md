@@ -148,3 +148,16 @@ Future work:
 - replace generated packets with real captured traffic or pcap replay
 - replace simulated IDS processing with real lightweight/cloud IDS models
 - optionally migrate the saved policy to DQN/Double DQN/Dueling DQN
+- Currently, when the cloud backend (cloud.py) is started on VM2, it only displays a simple message such as “Cloud IDS listening on port 9000”. While this confirms the service is running, it does not provide visibility into whether packets are being received, processed, or results are being sent back to the edge.
+
+For easier debugging and demonstration, should include:
+
+Logging incoming requests (e.g., timestamp, source IP, packet size).
+
+Displaying processing status on screen (e.g., “Received packet #42, offloaded to RL module”).
+
+Returning confirmation messages to the edge client and logging them.
+
+Optional verbose/debug mode to toggle detailed runtime information.
+
+This will make it clearer that the system is actively handling traffic, not just passively listening.
