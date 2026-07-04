@@ -161,3 +161,5 @@ Returning confirmation messages to the edge client and logging them.
 Optional verbose/debug mode to toggle detailed runtime information.
 
 This will make it clearer that the system is actively handling traffic, not just passively listening.
+
+- shape reward: tune parameter so RL learns smater policies 
