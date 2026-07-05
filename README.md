@@ -117,6 +117,12 @@ python cloud.py --host 0.0.0.0 --port 9000
 
 Make sure VM1 can reach VM2 on port `9000`.
 
+For a more visible demo with request logging:
+
+```bash
+python cloud.py --host 0.0.0.0 --port 9000 --verbose --log results/cloud_ids/cloud_requests_log.csv
+```
+
 ### 4. Run the edge sender on VM1
 
 Replace `<VM2_IP>` with the cloud VM IP address:
@@ -130,6 +136,36 @@ You can also run baseline strategies:
 ```bash
 python edge.py --cloud-host <VM2_IP> --strategy local --packets 50
 python edge.py --cloud-host <VM2_IP> --strategy threshold --packets 50
+```
+
+### 5. Run the RL-first IDS flow demo
+
+After training the edge IDS, `edge.py` can replay rows from the UNSW-NB15
+testing CSV as simulated live flows:
+
+```bash
+python edge.py --cloud-host <VM2_IP> --cloud-port 9000 --strategy ids-rl --flows 50 --confidence-threshold 0.90
+```
+
+The order is:
+
+1. RL/offloading policy decides first from edge resource/network state.
+2. If RL chooses cloud, the flow is sent to VM2 immediately and edge IDS is skipped.
+3. If RL chooses local, the lightweight edge IDS classifies the flow.
+4. If the local IDS predicts an attack, the flow is escalated to cloud.
+5. If the local IDS predicts `Normal` with confidence below the threshold, the flow is also escalated.
+6. Only high-confidence local `Normal` results stay at the edge.
+
+Edge-side demo logs are saved to:
+
+```text
+results/edge_ids/edge_ids_offloading_demo.csv
+```
+
+Cloud-side request logs are saved to:
+
+```text
+results/cloud_ids/cloud_requests_log.csv
 ```
 
 ## Current Scope
