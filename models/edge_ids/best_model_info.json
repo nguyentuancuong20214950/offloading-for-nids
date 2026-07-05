@@ -1,0 +1,40 @@
+{
+  "best_model": "random_forest",
+  "selection_metric": "macro_f1",
+  "best_model_path": "C:\\Users\\Admin\\Documents\\Codex\\2026-07-04\\i-have-a-simple-ids-to\\offloading-for-nids-main\\offloading-for-nids-main\\models\\edge_ids\\best_edge_ids_model.joblib",
+  "all_models": [
+    {
+      "model": "random_forest",
+      "accuracy": 0.7085701792741583,
+      "macro_f1": 0.48497209953905784,
+      "weighted_f1": 0.754845570519836,
+      "macro_precision": 0.49037035804995643,
+      "macro_recall": 0.5668164440537073,
+      "train_seconds": 221.00772857666016,
+      "predict_seconds": 0.8820207118988037,
+      "model_path": "C:\\Users\\Admin\\Documents\\Codex\\2026-07-04\\i-have-a-simple-ids-to\\offloading-for-nids-main\\offloading-for-nids-main\\models\\edge_ids\\random_forest.joblib"
+    },
+    {
+      "model": "extra_trees",
+      "accuracy": 0.6522129913035029,
+      "macro_f1": 0.40698423018785784,
+      "weighted_f1": 0.7130519827705604,
+      "macro_precision": 0.447972316585359,
+      "macro_recall": 0.6101327603876848,
+      "train_seconds": 223.16826486587524,
+      "predict_seconds": 1.3230023384094238,
+      "model_path": "C:\\Users\\Admin\\Documents\\Codex\\2026-07-04\\i-have-a-simple-ids-to\\offloading-for-nids-main\\offloading-for-nids-main\\models\\edge_ids\\extra_trees.joblib"
+    },
+    {
+      "model": "logistic_regression",
+      "accuracy": 0.6120949327114609,
+      "macro_f1": 0.33511269238087565,
+      "weighted_f1": 0.6756587204232197,
+      "macro_precision": 0.38318168798498314,
+      "macro_recall": 0.5328012450637764,
+      "train_seconds": 652.8759236335754,
+      "predict_seconds": 0.5305907726287842,
+      "model_path": "C:\\Users\\Admin\\Documents\\Codex\\2026-07-04\\i-have-a-simple-ids-to\\offloading-for-nids-main\\offloading-for-nids-main\\models\\edge_ids\\logistic_regression.joblib"
+    }
+  ]
+}

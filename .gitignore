@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.matplotlib_cache/
+
+# Local datasets
+ids_data/unsw_nb15/Training and Testing Sets/
+*.csv.tmp
+
+# Large trained model binaries
+models/edge_ids/*.joblib
+
+# Keep small metadata if present
+!models/edge_ids/best_model_info.json
+!models/edge_ids/feature_schema.json
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
