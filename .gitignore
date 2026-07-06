@@ -10,10 +10,13 @@ ids_data/unsw_nb15/Training and Testing Sets/
 
 # Large trained model binaries
 models/edge_ids/*.joblib
+models/cloud_ids/*.joblib
 
 # Keep small metadata if present
 !models/edge_ids/best_model_info.json
 !models/edge_ids/feature_schema.json
+!models/cloud_ids/best_model_info.json
+!models/cloud_ids/feature_schema.json
 
 # OS/editor noise
 .DS_Store

@@ -5,7 +5,12 @@ import os
 import socketserver
 import time
 
-from systemModel import Packet
+from cloud_ids_predictor import (
+    CloudIDSPredictor,
+    DEFAULT_LABEL_ENCODER_PATH,
+    DEFAULT_MODEL_PATH,
+    DEFAULT_SCHEMA_PATH,
+)
 
 
 def ensure_parent_dir(path):
@@ -24,42 +29,24 @@ def append_csv_row(path, fieldnames, row):
         writer.writerow(row)
 
 
-def estimate_flow_size(flow):
-    for key in ("packet_size", "size"):
-        if key in flow:
-            return max(1, int(float(flow.get(key) or 1)))
-    sbytes = float(flow.get("sbytes") or 0)
-    dbytes = float(flow.get("dbytes") or 0)
-    return max(1, int(sbytes + dbytes))
-
-
-def simulate_cloud_ids(packet):
-    processing_delay = 0.015 + min(0.060, packet.size / 120000.0)
-    time.sleep(processing_delay)
-    return {
-        "packet_id": packet.packet_id,
-        "status": "processed",
-        "processor": "cloud",
-        "classification": "simulated",
-        "processing_delay_ms": round(processing_delay * 1000.0, 3),
-    }
-
-
-def simulate_cloud_flow_analysis(request):
+def analyze_cloud_flow(request, predictor):
     flow = request.get("flow", {})
-    flow_size = estimate_flow_size(flow)
-    processing_delay = 0.020 + min(0.080, flow_size / 160000.0)
-    time.sleep(processing_delay)
+    start = time.time()
+    prediction = predictor.predict(flow)
+    elapsed_ms = (time.time() - start) * 1000.0
+
     return {
         "flow_id": request.get("flow_id"),
         "status": "processed",
         "processor": "cloud",
-        "cloud_result": "deep_analysis_completed",
+        "cloud_result": prediction.get("attack_category"),
+        "cloud_confidence": prediction.get("confidence"),
+        "cloud_class_probabilities": prediction.get("class_probabilities"),
         "true_attack_cat": request.get("true_attack_cat", "unknown"),
         "edge_prediction": request.get("edge_prediction"),
         "edge_confidence": request.get("edge_confidence"),
         "reason": request.get("reason", "rl_offload"),
-        "processing_delay_ms": round(processing_delay * 1000.0, 3),
+        "processing_delay_ms": round(elapsed_ms, 3),
     }
 
 
@@ -71,11 +58,9 @@ class CloudRequestHandler(socketserver.StreamRequestHandler):
 
         try:
             request = json.loads(raw)
-            if request.get("type") == "flow":
-                result = simulate_cloud_flow_analysis(request)
-            else:
-                packet = Packet.from_dict(request)
-                result = simulate_cloud_ids(packet)
+            if request.get("type") != "flow":
+                raise ValueError("cloud.py only accepts real flow requests with type='flow'.")
+            result = analyze_cloud_flow(request, self.server.ids_predictor)
         except Exception as exc:
             result = {
                 "status": "error",
@@ -89,9 +74,8 @@ class CloudRequestHandler(socketserver.StreamRequestHandler):
     def log_request(self, result):
         if getattr(self.server, "verbose", False):
             print(
-                "Cloud handled flow={flow_id} packet={packet_id} reason={reason} status={status}".format(
+                "Cloud handled flow={flow_id} reason={reason} status={status}".format(
                     flow_id=result.get("flow_id"),
-                    packet_id=result.get("packet_id"),
                     reason=result.get("reason"),
                     status=result.get("status"),
                 )
@@ -104,12 +88,13 @@ class CloudRequestHandler(socketserver.StreamRequestHandler):
         row = {
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "source_ip": self.client_address[0],
-            "flow_id": result.get("flow_id", result.get("packet_id")),
+            "flow_id": result.get("flow_id"),
             "reason": result.get("reason"),
             "edge_prediction": result.get("edge_prediction"),
             "edge_confidence": result.get("edge_confidence"),
             "true_attack_cat": result.get("true_attack_cat"),
-            "cloud_result": result.get("cloud_result", result.get("classification")),
+            "cloud_result": result.get("cloud_result"),
+            "cloud_confidence": result.get("cloud_confidence"),
             "status": result.get("status"),
             "processing_time_ms": result.get("processing_delay_ms"),
         }
@@ -128,12 +113,19 @@ def main():
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=9000)
     parser.add_argument("--log", default="results/cloud_ids/cloud_requests_log.csv")
+    parser.add_argument("--model", default=DEFAULT_MODEL_PATH)
+    parser.add_argument("--label-encoder", default=DEFAULT_LABEL_ENCODER_PATH)
+    parser.add_argument("--schema", default=DEFAULT_SCHEMA_PATH)
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
+
+    ids_predictor = CloudIDSPredictor(args.model, args.label_encoder, args.schema)
+    print("Loaded cloud IDS model: {}".format(args.model))
 
     with ReusableTCPServer((args.host, args.port), CloudRequestHandler) as server:
         server.log_path = args.log
         server.verbose = args.verbose
+        server.ids_predictor = ids_predictor
         server.log_fields = [
             "timestamp",
             "source_ip",
@@ -143,6 +135,7 @@ def main():
             "edge_confidence",
             "true_attack_cat",
             "cloud_result",
+            "cloud_confidence",
             "status",
             "processing_time_ms",
         ]

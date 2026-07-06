@@ -4,14 +4,15 @@ import json
 import os
 
 from systemModel import LOCAL, NIDSOffloadingEnv
-from Training import MODEL_PATH, QLearningOffloadAgent, train_agent
+from edge_ids_train import DEFAULT_TRAIN_PATH
+from Training import MODEL_PATH, QLearningOffloadAgent, load_training_flows, train_agent
 
 
-def run_strategy(strategy, agent=None, packets=600, seed=40):
+def run_strategy(strategy, flows, agent=None, seed=40):
     env = NIDSOffloadingEnv(seed=seed)
-    state = env.reset()
-
-    for _ in range(packets):
+    env.reset()
+    for _, flow in flows.iterrows():
+        state = env.getstate(flow)
         if strategy == "local":
             action = LOCAL
         elif strategy == "threshold":
@@ -21,7 +22,7 @@ def run_strategy(strategy, agent=None, packets=600, seed=40):
         else:
             raise ValueError(f"Unknown strategy: {strategy}")
 
-        state, _, _ = env.step(action)
+        env.step_flow(action, flow)
 
     return env.summary()
 
@@ -82,17 +83,22 @@ def save_results(results, path):
 
 def main():
     parser = argparse.ArgumentParser(description="Compare local-only, threshold, and RL adaptive NIDS offloading.")
-    parser.add_argument("--packets", type=int, default=600)
+    parser.add_argument("--flows", type=int, default=600)
+    parser.add_argument("--flows-csv", default=None, help="CSV of real flow features for replay. Defaults to the training split.")
     parser.add_argument("--seed", type=int, default=40)
     parser.add_argument("--model", default=MODEL_PATH)
     parser.add_argument("--out", default="nids_offloading_results.csv")
     args = parser.parse_args()
 
     agent = ensure_model(args.model)
+    if args.flows_csv:
+        flows = load_training_flows(args.flows_csv, args.flows)
+    else:
+        flows = load_training_flows(DEFAULT_TRAIN_PATH, args.flows)
     results = {
-        "local": run_strategy("local", packets=args.packets, seed=args.seed),
-        "threshold": run_strategy("threshold", packets=args.packets, seed=args.seed),
-        "rl": run_strategy("rl", agent=agent, packets=args.packets, seed=args.seed),
+        "local": run_strategy("local", flows, seed=args.seed),
+        "threshold": run_strategy("threshold", flows, seed=args.seed),
+        "rl": run_strategy("rl", flows, agent=agent, seed=args.seed),
     }
     print_summary(results)
     save_results(results, args.out)

@@ -5,7 +5,7 @@ import os
 import socket
 import time
 
-from systemModel import LOCAL, OFFLOAD, NIDSOffloadingEnv
+from systemModel import LOCAL, OFFLOAD, NIDSOffloadingEnv, estimate_flow_size as estimate_flow_bytes
 from Training import MODEL_PATH, QLearningOffloadAgent, train_agent
 
 
@@ -118,9 +118,7 @@ def flow_to_cloud_payload(flow_id, flow, reason, true_attack_cat, edge_predictio
 
 
 def estimate_flow_size(flow):
-    sbytes = float(flow.get("sbytes") or 0)
-    dbytes = float(flow.get("dbytes") or 0)
-    return max(64, int(sbytes + dbytes))
+    return estimate_flow_bytes(flow)
 
 
 def make_state_for_flow(env, flow):
@@ -128,7 +126,7 @@ def make_state_for_flow(env, flow):
     return [
         round(env.edge_cpu, 3),
         round(env.edge_ram, 3),
-        float(env.packet_queue),
+        float(env.flow_queue),
         round(env.processing_latency, 3),
         round(env.bandwidth_used, 3),
         round(env.rtt, 3),
@@ -175,6 +173,10 @@ def run_ids_rl_demo(args):
         "edge_ids_used",
         "edge_prediction",
         "edge_confidence",
+        "cloud_result",
+        "cloud_confidence",
+        "final_prediction",
+        "final_confidence",
         "ids_escalated_to_cloud",
         "final_location",
         "reason",
@@ -198,11 +200,19 @@ def run_ids_rl_demo(args):
         edge_ids_used = False
         edge_prediction = None
         edge_confidence = None
+        cloud_result = None
+        cloud_confidence = None
+        final_prediction = None
+        final_confidence = None
         ids_escalated = False
 
         if action == OFFLOAD:
             reason = "rl_resource_offload"
             response = cloud_client(flow_to_cloud_payload(flow_id, flow, reason, true_attack_cat))
+            cloud_result = response.get("cloud_result")
+            cloud_confidence = response.get("cloud_confidence")
+            final_prediction = cloud_result
+            final_confidence = cloud_confidence
             latency_ms = float(response.get("latency_ms", (time.time() - start) * 1000.0))
             final_location = "cloud"
             rl_decision = "cloud"
@@ -236,6 +246,10 @@ def run_ids_rl_demo(args):
                         edge_confidence=edge_confidence,
                     )
                 )
+                cloud_result = response.get("cloud_result")
+                cloud_confidence = response.get("cloud_confidence")
+                final_prediction = cloud_result or edge_prediction
+                final_confidence = cloud_confidence if cloud_confidence is not None else edge_confidence
                 cloud_latency_ms = float(response.get("latency_ms", (time.time() - cloud_start) * 1000.0))
                 latency_ms = local_latency_ms + cloud_latency_ms
                 final_location = "cloud"
@@ -243,16 +257,24 @@ def run_ids_rl_demo(args):
             else:
                 latency_ms = local_latency_ms
                 final_location = "edge"
+                final_prediction = edge_prediction
+                final_confidence = edge_confidence
                 reward = advance_flow_metrics(env, LOCAL, latency_ms)
 
         print(
             "Flow {flow_id} | RL={rl_decision} | edge={edge_prediction} "
-            "conf={edge_confidence} | final={final_location} | reason={reason} | true={true_attack_cat}".format(
+            "conf={edge_confidence} | cloud={cloud_result} conf={cloud_confidence} "
+            "| final={final_location}:{final_prediction} conf={final_confidence} "
+            "| reason={reason} | true={true_attack_cat}".format(
                 flow_id=flow_id,
                 rl_decision=rl_decision,
                 edge_prediction=edge_prediction or "skipped",
                 edge_confidence="n/a" if edge_confidence is None else f"{edge_confidence:.3f}",
+                cloud_result=cloud_result or "skipped",
+                cloud_confidence="n/a" if cloud_confidence is None else f"{cloud_confidence:.3f}",
                 final_location=final_location,
+                final_prediction=final_prediction or "unknown",
+                final_confidence="n/a" if final_confidence is None else f"{final_confidence:.3f}",
                 reason=reason,
                 true_attack_cat=true_attack_cat,
             )
@@ -270,6 +292,10 @@ def run_ids_rl_demo(args):
                     "edge_ids_used": edge_ids_used,
                     "edge_prediction": edge_prediction,
                     "edge_confidence": edge_confidence,
+                    "cloud_result": cloud_result,
+                    "cloud_confidence": cloud_confidence,
+                    "final_prediction": final_prediction,
+                    "final_confidence": final_confidence,
                     "ids_escalated_to_cloud": ids_escalated,
                     "final_location": final_location,
                     "reason": reason,
@@ -286,53 +312,11 @@ def run_ids_rl_demo(args):
         print(f"  {key}: {value}")
 
 
-def run_edge_demo(args):
-    cloud_client = send_to_cloud(args.cloud_host, args.cloud_port, args.timeout)
-    env = NIDSOffloadingEnv(seed=args.seed, cloud_client=cloud_client)
-
-    if args.strategy == "rl":
-        agent = load_or_train_model(args.model, args.train_if_missing)
-    else:
-        agent = None
-
-    state = env.reset()
-    print(f"Edge demo started with strategy={args.strategy}")
-    print(f"Cloud target: {args.cloud_host}:{args.cloud_port}")
-
-    for _ in range(args.packets):
-        if args.strategy == "local":
-            action = LOCAL
-        elif args.strategy == "threshold":
-            action = env.threshold_action()
-        else:
-            action = agent.choose_action(state, explore=False)
-
-        try:
-            next_state, reward, result = env.step(action)
-        except OSError as exc:
-            print(f"Cloud send failed for packet {env.last_packet.packet_id}: {exc}")
-            next_state, reward, result = env.step(LOCAL)
-
-        action_name = "OFFLOAD" if action == OFFLOAD else "LOCAL"
-        print(
-            f"packet={result.get('packet_id')} action={action_name} "
-            f"processor={result.get('processor')} status={result.get('status')} "
-            f"latency_ms={result.get('latency_ms', 0):.2f} reward={reward:.2f}"
-        )
-        state = next_state
-        time.sleep(args.interval)
-
-    print("Summary:")
-    for key, value in env.summary().items():
-        print(f"  {key}: {value}")
-
-
 def main():
     parser = argparse.ArgumentParser(description="Edge IDS + RL offloading sender for VM1.")
     parser.add_argument("--cloud-host", required=True, help="IP address of VM2 running cloud.py")
     parser.add_argument("--cloud-port", type=int, default=9000)
-    parser.add_argument("--strategy", choices=["local", "threshold", "rl", "ids-rl"], default="rl")
-    parser.add_argument("--packets", type=int, default=50)
+    parser.add_argument("--strategy", choices=["ids-rl"], default="ids-rl")
     parser.add_argument("--flows", type=int, default=50, help="Number of UNSW-NB15 rows to replay in ids-rl mode.")
     parser.add_argument("--flows-csv", default=DEFAULT_UNSW_TEST_PATH, help="UNSW-NB15 testing CSV used as live-flow input.")
     parser.add_argument("--confidence-threshold", type=float, default=0.90)
@@ -346,10 +330,7 @@ def main():
     parser.add_argument("--model", default=MODEL_PATH)
     parser.add_argument("--train-if-missing", action="store_true")
     args = parser.parse_args()
-    if args.strategy == "ids-rl":
-        run_ids_rl_demo(args)
-    else:
-        run_edge_demo(args)
+    run_ids_rl_demo(args)
 
 
 if __name__ == "__main__":

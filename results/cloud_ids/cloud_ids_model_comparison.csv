@@ -1,0 +1,4 @@
+model,accuracy,balanced_accuracy,macro_f1,weighted_f1,macro_precision,macro_recall,train_seconds,predict_seconds,model_path
+catboost,0.6596948938444347,0.6376678410963252,0.4302712472851802,0.7186160837556641,0.45229944598947114,0.6376678410963252,1446.7239887714386,1.4259788990020752,D:\Documents\Course's Project\i-have-a-simple-ids-to\offloading-for-nids-main\models\cloud_ids\catboost.joblib
+lightgbm,0.7222100762765389,0.6137828029508159,0.5338950681838303,0.766828487522015,0.5598026618947805,0.6137828029508159,1167.2575080394745,59.071640968322754,D:\Documents\Course's Project\i-have-a-simple-ids-to\offloading-for-nids-main\models\cloud_ids\lightgbm.joblib
+neural_net,0.6681970558227663,0.601783518914657,0.42878415460049546,0.7229400609483577,0.4364570981123542,0.601783518914657,1360.6191215515137,2.320145845413208,D:\Documents\Course's Project\i-have-a-simple-ids-to\offloading-for-nids-main\models\cloud_ids\neural_net.joblib
