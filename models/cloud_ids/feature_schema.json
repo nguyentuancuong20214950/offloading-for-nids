@@ -102,6 +102,6 @@
     "Shellcode",
     "Worms"
   ],
-  "train_path": "D:\\Documents\\Course's Project\\i-have-a-simple-ids-to\\offloading-for-nids-main\\ids_data\\unsw_nb15\\Training and Testing Sets\\UNSW_NB15_training-set.csv",
-  "test_path": "D:\\Documents\\Course's Project\\i-have-a-simple-ids-to\\offloading-for-nids-main\\ids_data\\unsw_nb15\\Training and Testing Sets\\UNSW_NB15_testing-set.csv"
+  "train_path": "d:\\Documents\\Course's Project\\i-have-a-simple-ids-to\\offloading-for-nids-main\\ids_data\\unsw_nb15\\Training and Testing Sets\\UNSW_NB15_training-set.csv",
+  "test_path": "d:\\Documents\\Course's Project\\i-have-a-simple-ids-to\\offloading-for-nids-main\\ids_data\\unsw_nb15\\Training and Testing Sets\\UNSW_NB15_testing-set.csv"
 }

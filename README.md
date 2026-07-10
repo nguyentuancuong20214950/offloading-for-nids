@@ -1,33 +1,106 @@
 # Adaptive Offloading for NIDS
 
-This project adapts the original MEC task-offloading code into a prototype for
-adaptive offloading in a Network Intrusion Detection System (NIDS).
+This repository contains a prototype **adaptive edge-cloud Network Intrusion
+Detection System (NIDS)**. The system uses a reinforcement learning offloading
+policy to decide whether each network flow should be:
 
-The goal is to decide, for each real flow inspection task, whether the edge
-device should process it locally or offload it to a cloud IDS backend.
+- processed locally by the edge IDS,
+- offloaded to the cloud IDS, or
+- dropped when the simulated edge environment is overloaded.
 
-## Architecture
+The current implementation is **flow-based**. Raw packets are not processed
+directly yet. A future packet-to-flow extractor must convert live packets or
+pcap traffic into the same flow feature schema used by the IDS models.
+
+## Project Overview
 
 The project is designed for a two-VM demo:
 
-- VM1: Edge IDS + RL agent
-  - Replays extracted flow feature rows.
-  - Observes simulated edge/network state.
-  - Chooses local processing or cloud offloading.
-  - Sends offloaded flow features to VM2 over TCP.
-- VM2: Cloud IDS backend
-  - Receives offloaded flow features.
-  - Runs the trained cloud IDS model.
-  - Returns the cloud IDS prediction, confidence, and class probabilities.
+- **Edge VM**
+  - Replays flow feature rows from UNSW-NB15.
+  - Loads the RL offloading policy.
+  - Loads lightweight edge IDS models.
+  - Decides whether to process locally or offload to cloud.
+  - Sends offloaded flow features to the cloud VM over TCP.
+  - Records the final IDS result.
 
-The edge and cloud IDS classifiers are trained on UNSW-NB15 feature rows. A
-live deployment should feed equivalent extracted flow features into the same
-schema. Raw packet capture is not consumed directly yet; packets must first be
-converted into flow features by a future extractor.
+- **Cloud VM**
+  - Receives offloaded flow feature rows from the edge VM.
+  - Loads the trained cloud IDS model.
+  - Returns prediction, confidence, and class probabilities to the edge.
 
-## State Vector
+The edge remains the main controller. Even when a flow is classified by the
+cloud, the final result is sent back and logged on the edge side.
 
-The RL policy observes these simulated values:
+## Current Scope
+
+Implemented:
+
+- flow feature replay from the UNSW-NB15 processed CSV files,
+- simulated edge and network metrics,
+- Q-learning based RL offloading policy saved to disk,
+- local-only, threshold, and RL adaptive offloading comparison,
+- lightweight multi-class edge IDS training,
+- stronger cloud IDS training with CatBoost, LightGBM, and MLP Neural Network,
+- best cloud model selection by balanced accuracy,
+- TCP JSON communication between edge and cloud,
+- cloud IDS result integration into the edge output,
+- edge and cloud runtime logs.
+
+Not implemented yet:
+
+- live packet capture,
+- packet-to-flow extraction,
+- real VM CPU/RAM/queue/bandwidth/RTT monitoring,
+- encrypted/authenticated edge-cloud communication,
+- production-grade deployment.
+
+## Repository Structure
+
+```text
+.
+|-- Training.py                  # Train RL offloading policy
+|-- Simulation.py                # Compare local-only, threshold, and RL modes
+|-- systemModel.py               # Flow offloading environment and reward logic
+|-- edge.py                      # Edge VM runtime: RL + edge IDS + cloud offload
+|-- cloud.py                     # Cloud VM runtime: receive flow and classify
+|-- edge_ids_train.py            # Train edge IDS models
+|-- edge_ids_predictor.py        # Run edge IDS prediction on CSV input
+|-- cloud_ids_train.py           # Train cloud IDS models
+|-- cloud_ids_predictor.py       # Run cloud IDS prediction on CSV input
+|-- DQN.py                       # Original deep RL file kept for future work
+|-- Double.py                    # Original Double DQN file kept for future work
+|-- Dueling.py                   # Original Dueling DQN file kept for future work
+|-- ids_data/                    # IDS datasets
+|-- data/                        # Original/offloading simulation artifacts
+|-- models/                      # Saved trained models and metadata
+|-- results/                     # Evaluation outputs and runtime logs
+|-- requirements-edge-ids.txt    # Edge IDS dependencies
+`-- requirements-cloud-ids.txt   # Cloud IDS dependencies
+```
+
+## Dataset
+
+Use the official processed UNSW-NB15 training/testing split:
+
+```text
+ids_data/unsw_nb15/Training and Testing Sets/UNSW_NB15_training-set.csv
+ids_data/unsw_nb15/Training and Testing Sets/UNSW_NB15_testing-set.csv
+```
+
+Use these files instead of the raw `UNSW-NB15_1.csv`, `UNSW-NB15_2.csv`, etc.
+The processed split already includes the `attack_cat` column used for
+multi-class labels.
+
+The existing `data/` folder is kept for offloading simulation artifacts. IDS
+datasets are kept under `ids_data/` so the two parts of the project stay
+separate.
+
+## RL Offloading Policy
+
+### State Vector
+
+The RL policy currently observes simulated values:
 
 - `edge_cpu`
 - `edge_ram`
@@ -37,229 +110,86 @@ The RL policy observes these simulated values:
 - `rtt`
 - `flow_size`
 
-## Actions
+`flow_size` is useful for estimating processing/transmission cost, but it may
+need to be removed later if the offloading decision must be made before reading
+traffic information.
+
+### Actions
 
 - `0`: process locally at the edge
 - `1`: offload to cloud IDS
+- drop action inside the environment when the queue is overloaded
 
-When action `1` is selected in `edge.py`, the flow feature row is sent to the
-cloud VM over a TCP socket and a result is received back.
+When offloading is selected in `edge.py`, the flow feature row is sent to the
+cloud VM over TCP and the cloud IDS result is received back.
 
-## Reward
+### Reward
 
 The reward encourages:
 
-- successful flow inspection
-- lower processing latency
-- fewer flow drops
-- lower edge overload
-- reasonable bandwidth use
-- CPU saving when the edge is busy
+- successful flow inspection,
+- lower processing latency,
+- fewer dropped flows,
+- lower edge overload,
+- reasonable bandwidth usage,
+- CPU saving when the edge is busy.
 
-It penalizes unnecessary offloading when the edge is not busy.
-Dropped flows receive a strong negative reward, and high queue pressure is
-penalized before the queue reaches the drop limit.
+It penalizes:
 
-## Files
+- unnecessary offloading when the edge is not busy,
+- high queue pressure,
+- dropped flows.
 
-- `systemModel.py`: real-flow offloading environment and reward logic
-- `Training.py`: trains and saves the RL offloading policy
-- `Simulation.py`: compares local-only, threshold, and RL adaptive offloading
-- `edge.py`: run on VM1, loads trained edge IDS/RL policy and sends offloaded flows to cloud
-- `cloud.py`: run on VM2, receives flow features and returns cloud IDS predictions
-- `DQN.py`, `Double.py`, `Dueling.py`: original deep RL files kept for reference/future work
+Dropped flows receive a strong negative reward. Retrain the RL policy after
+changing reward parameters such as drop penalties or queue thresholds.
 
-## Quick Local Replay Simulation
+## Installation
 
-Train the RL policy:
+Install Python 3.9 or newer on both VMs.
+
+Clone the repository:
 
 ```bash
-python Training.py
+git clone https://github.com/nguyentuancuong20214950/offloading-for-nids.git
+cd offloading-for-nids
 ```
 
-Run comparison on real UNSW-NB15 feature rows:
+Optional but recommended: create a virtual environment.
 
 ```bash
-python Simulation.py --flows 600
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 
-The comparison result is saved to:
+On Windows:
 
-```text
-nids_offloading_results.csv
+```bash
+python -m venv .venv
+.venv\Scripts\activate
 ```
 
-## Two-VM Demo
-
-### 1. Copy the repo to both VMs
-
-Both VMs should have Python 3 installed. This prototype only uses the Python
-standard library.
-
-### 2. Fresh VM setup: train files that are not stored in GitHub
-
-Large trained IDS model files are not stored in GitHub. After pulling the repo
-on a fresh VM, train the required local files before running the full IDS demo.
-
-On the edge VM, install the IDS dependencies:
+Install dependencies according to the VM role:
 
 ```bash
 python3 -m pip install -r requirements-edge-ids.txt
+python3 -m pip install -r requirements-cloud-ids.txt
 ```
 
-Place the official processed UNSW-NB15 files here:
+On a VM that will only run the edge, `requirements-edge-ids.txt` is enough.
+On a VM that will train/run cloud IDS, install `requirements-cloud-ids.txt`.
 
-```text
-ids_data/unsw_nb15/Training and Testing Sets/UNSW_NB15_training-set.csv
-ids_data/unsw_nb15/Training and Testing Sets/UNSW_NB15_testing-set.csv
-```
+## Training
 
-Train the edge IDS:
+Large trained model files are not stored in GitHub. On a fresh VM, train the
+required model files before running the full demo.
+
+### Train Edge IDS Models
 
 ```bash
 python3 edge_ids_train.py
 ```
 
-This creates:
-
-```text
-models/edge_ids/best_edge_ids_model.joblib
-models/edge_ids/label_encoder.joblib
-models/edge_ids/feature_schema.json
-```
-
-If the VM is small, train with fewer rows:
-
-```bash
-python3 edge_ids_train.py --max-train-rows 50000
-```
-
-Train the RL/offloading policy:
-
-```bash
-python3 Training.py
-```
-
-This creates:
-
-```text
-offload_q_table.json
-```
-
-Retrain this policy after changing reward parameters such as drop penalties or
-queue thresholds.
-
-### 3. Start the cloud backend on VM2
-
-On the cloud VM:
-
-```bash
-python3 cloud.py --host 0.0.0.0 --port 9000
-```
-
-Make sure VM1 can reach VM2 on port `9000`.
-
-For a more visible demo with request logging:
-
-```bash
-python3 cloud.py --host 0.0.0.0 --port 9000 --verbose --log results/cloud_ids/cloud_requests_log.csv
-```
-
-### 4. Run the edge sender on VM1
-
-Replace `<VM2_IP>` with the cloud VM IP address:
-
-```bash
-python3 edge.py --cloud-host <VM2_IP> --cloud-port 9000 --flows 50 --confidence-threshold 0.90
-```
-
-### 5. RL-first IDS flow behavior
-
-After training the edge IDS, `edge.py` replays rows from the UNSW-NB15 testing
-CSV as real flow feature inputs:
-
-```bash
-python3 edge.py --cloud-host <VM2_IP> --cloud-port 9000 --flows 50 --confidence-threshold 0.90
-```
-
-The order is:
-
-1. RL/offloading policy decides first from edge resource/network state.
-2. If RL chooses cloud, the flow is sent to VM2 immediately and edge IDS is skipped.
-3. Cloud IDS returns its prediction, confidence, and class probabilities to the edge.
-4. If RL chooses local, the lightweight edge IDS classifies the flow.
-5. If the local IDS predicts an attack, the flow is escalated to cloud.
-6. If the local IDS predicts `Normal` with confidence below the threshold, the flow is also escalated.
-7. Only high-confidence local `Normal` results stay at the edge.
-8. Edge logs both edge and cloud predictions, then records the final prediction source.
-
-Alternative security-escalation policy:
-
-The current demo escalates every local attack prediction to cloud. This is safe,
-but it can make the cloud look like the main worker when the test traffic has
-many attacks. A lighter alternative is to escalate only uncertain IDS results:
-
-```text
-Normal + confidence >= 0.90 -> keep local
-Normal + confidence < 0.90  -> cloud confirmation
-Attack + confidence >= 0.85 -> keep local alert
-Attack + confidence < 0.85  -> cloud confirmation
-```
-
-This keeps the cloud closer to a backup/deep-confirmation role instead of
-offloading every attack prediction. It can be implemented later with separate
-normal and attack confidence thresholds.
-
-Edge-side demo logs are saved to:
-
-```text
-results/edge_ids/edge_ids_offloading_demo.csv
-```
-
-Cloud-side request logs are saved to:
-
-```text
-results/cloud_ids/cloud_requests_log.csv
-```
-
-## Current Scope
-
-Implemented now:
-
-- real flow feature replay from CSV
-- simulated edge metrics
-- trained RL offloading policy saved to disk
-- real TCP send/receive for offloaded flows in the two-VM demo
-- trained local IDS and cloud IDS processing
-- local-only, threshold, and RL comparison
-- lightweight multi-class edge IDS training on UNSW-NB15
-- saved edge IDS models and visual comparison reports
-
-## Edge IDS Training
-
-The edge IDS is trained offline with the official processed UNSW-NB15 split:
-
-```text
-ids_data/unsw_nb15/Training and Testing Sets/UNSW_NB15_training-set.csv
-ids_data/unsw_nb15/Training and Testing Sets/UNSW_NB15_testing-set.csv
-```
-
-Use these two files instead of the raw `UNSW-NB15_1.csv`, `UNSW-NB15_2.csv`,
-etc. The processed split already includes the `attack_cat` column used for
-multi-class labels.
-
-The existing `data/` folder is kept for offloading simulation artifacts. IDS
-datasets are kept under `ids_data/` so the two parts of the project stay
-separate.
-
-Train the lightweight edge IDS models:
-
-```bash
-pip install -r requirements-edge-ids.txt
-python edge_ids_train.py
-```
-
-This trains and saves three models:
+This trains:
 
 ```text
 models/edge_ids/random_forest.joblib
@@ -267,9 +197,6 @@ models/edge_ids/extra_trees.joblib
 models/edge_ids/logistic_regression.joblib
 models/edge_ids/best_edge_ids_model.joblib
 ```
-
-The selected best model is chosen by macro F1 score because UNSW-NB15 attack
-classes are imbalanced.
 
 Training also saves reusable metadata:
 
@@ -291,17 +218,196 @@ results/edge_ids/confusion_matrix_extra_trees.png
 results/edge_ids/confusion_matrix_logistic_regression.png
 ```
 
-For a smaller machine, train with a stratified sample:
+For a smaller machine, train with fewer rows:
 
 ```bash
-python edge_ids_train.py --max-train-rows 50000
+python3 edge_ids_train.py --max-train-rows 50000
 ```
+
+### Train Cloud IDS Models
+
+The cloud IDS is intended to be stronger than the edge IDS. The edge model is
+kept lightweight, while the cloud side may use more CPU/RAM and slower training.
+
+Train all cloud models:
+
+```bash
+python3 cloud_ids_train.py
+```
+
+This trains and compares:
+
+- CatBoost,
+- LightGBM,
+- Multilayer Perceptron Neural Network.
+
+The best cloud model is selected by balanced accuracy and saved to:
+
+```text
+models/cloud_ids/best_cloud_ids_model.joblib
+models/cloud_ids/label_encoder.joblib
+models/cloud_ids/feature_schema.json
+models/cloud_ids/best_model_info.json
+```
+
+Individual model artifacts may include:
+
+```text
+models/cloud_ids/catboost.joblib
+models/cloud_ids/lightgbm.joblib
+models/cloud_ids/neural_net.joblib
+```
+
+Results are saved here:
+
+```text
+results/cloud_ids/cloud_ids_model_comparison.csv
+results/cloud_ids/classification_report_catboost.csv
+results/cloud_ids/classification_report_lightgbm.csv
+results/cloud_ids/classification_report_neural_net.csv
+results/cloud_ids/confusion_matrix_catboost.png
+results/cloud_ids/confusion_matrix_lightgbm.png
+results/cloud_ids/confusion_matrix_neural_net.png
+```
+
+Train only CatBoost:
+
+```bash
+python3 cloud_ids_train.py --models catboost
+```
+
+For a smaller VM:
+
+```bash
+python3 cloud_ids_train.py --max-train-rows 50000 --nn-max-iter 40
+```
+
+Tune the neural network if the cloud VM has enough CPU/RAM:
+
+```bash
+python3 cloud_ids_train.py --nn-hidden-layers 512 256 128 --nn-max-iter 120 --nn-batch-size 1024
+```
+
+Note: some scikit-learn versions do not support `sample_weight` for
+`MLPClassifier.fit()`. If neural network training fails with a `sample_weight`
+error, train only CatBoost or update the training code to skip sample weights
+for the neural network.
+
+### Train RL Offloading Policy
+
+```bash
+python3 Training.py
+```
+
+This creates:
+
+```text
+offload_q_table.json
+```
+
+Retrain this file after changing reward parameters, queue thresholds, or drop
+penalties.
+
+## Quick Local Replay Simulation
+
+Run a local comparison on UNSW-NB15 flow feature rows:
+
+```bash
+python3 Simulation.py --flows 600
+```
+
+The comparison result is saved to:
+
+```text
+nids_offloading_results.csv
+```
+
+This simulation compares local-only, threshold, and RL adaptive offloading
+behavior.
+
+## Two-VM Demo
+
+### VM Network Setup
+
+Recommended setup:
+
+- Adapter 1: NAT, for internet and package installation.
+- Adapter 2: Host-only Adapter or Internal Network, for edge-cloud traffic.
+
+Example static IPs:
+
+```text
+Cloud VM: 192.168.56.10
+Edge VM:  192.168.56.11
+```
+
+Make sure the edge VM can reach the cloud VM on the selected port:
+
+```bash
+ping 192.168.56.10
+```
+
+### Start the Cloud Backend on VM2
+
+```bash
+python3 cloud.py --host 0.0.0.0 --port 9000
+```
+
+For a more visible demo with request logging:
+
+```bash
+python3 cloud.py --host 0.0.0.0 --port 9000 --verbose --log results/cloud_ids/cloud_requests_log.csv
+```
+
+With `--verbose`, the cloud backend prints received flow requests and status
+messages. This makes it easier to show that the cloud is actively handling
+offloaded flows.
+
+Cloud-side request logs are saved to:
+
+```text
+results/cloud_ids/cloud_requests_log.csv
+```
+
+### Run the Edge Sender on VM1
+
+Replace `<CLOUD_VM_IP>` with the cloud VM IP address:
+
+```bash
+python3 edge.py --cloud-host <CLOUD_VM_IP> --cloud-port 9000 --flows 50 --confidence-threshold 0.90
+```
+
+Example:
+
+```bash
+python3 edge.py --cloud-host 192.168.56.10 --cloud-port 9000 --flows 50 --confidence-threshold 0.90
+```
+
+Edge-side demo logs are saved to:
+
+```text
+results/edge_ids/edge_ids_offloading_demo.csv
+```
+
+## Runtime Flow Behavior
+
+`edge.py` replays rows from the UNSW-NB15 testing CSV as flow feature inputs.
+The processing order is:
+
+1. The RL/offloading policy decides first from edge resource/network state.
+2. If RL chooses cloud, the flow is sent to VM2 and the edge IDS is skipped.
+3. The cloud IDS returns prediction, confidence, and class probabilities.
+4. If RL chooses local, the lightweight edge IDS classifies the flow.
+5. The edge records the final prediction and result source.
+
+The current policy is intentionally flow-only. It does not generate simulated
+packets and does not run packet-based demo logic.
 
 ## Edge IDS Runtime Input
 
-UNSW-NB15 is used for training and evaluation only. In the full VM demo, real
-traffic should be captured or generated, converted into flow features, and then
-passed to the trained edge IDS model.
+UNSW-NB15 is used for training, replay, and evaluation. In a future live demo,
+real traffic should be captured or generated, converted into flow features, and
+then passed to the trained IDS models.
 
 The runtime flow extractor must produce the same feature columns saved in:
 
@@ -309,100 +415,52 @@ The runtime flow extractor must produce the same feature columns saved in:
 models/edge_ids/feature_schema.json
 ```
 
-Later, a flow extractor such as CICFlowMeter may be used, but its output columns
-may not match UNSW-NB15 directly. If that happens, add a feature-mapping layer
-before calling `edge_ids_predictor.py`.
+Later, a flow extractor such as CICFlowMeter may be used, but its output
+columns may not match UNSW-NB15 directly. If that happens, add a
+feature-mapping layer before calling `edge_ids_predictor.py`.
 
 Run predictions on a CSV of extracted flow features:
 
 ```bash
-python edge_ids_predictor.py --input-csv extracted_flows.csv --output-csv edge_ids_predictions.csv
+python3 edge_ids_predictor.py --input-csv extracted_flows.csv --output-csv edge_ids_predictions.csv
 ```
 
-## Strong Cloud IDS Training
-
-The cloud IDS is intended to be stronger than the edge IDS. The edge model is
-kept lightweight, while the cloud model may use more CPU/RAM and slower
-training.
-
-Train the cloud neural-network IDS:
-
-```bash
-python3 -m pip install -r requirements-cloud-ids.txt
-python3 cloud_ids_train.py
-```
-
-This trains a scikit-learn MLP classifier and saves the best cloud IDS artifact:
-
-```text
-models/cloud_ids/neural_net.joblib
-models/cloud_ids/best_cloud_ids_model.joblib
-models/cloud_ids/label_encoder.joblib
-models/cloud_ids/feature_schema.json
-models/cloud_ids/best_model_info.json
-```
-
-Results are saved here:
-
-```text
-results/cloud_ids/cloud_ids_model_comparison.csv
-results/cloud_ids/classification_report_neural_net.csv
-results/cloud_ids/confusion_matrix_neural_net.csv
-```
-
-Compare the cloud IDS against the current edge IDS using balanced accuracy /
-macro recall, not only normal accuracy. The current edge Random Forest result is
-around:
-
-```text
-accuracy: 0.7086
-balanced accuracy / macro recall: 0.5668
-macro F1: 0.4850
-```
-
-For a smaller test run:
-
-```bash
-python3 cloud_ids_train.py --max-train-rows 50000 --nn-max-iter 40
-```
-
-Tune the neural network size if the cloud VM has enough CPU/RAM:
-
-```bash
-python3 cloud_ids_train.py --nn-hidden-layers 512 256 128 --nn-max-iter 120 --nn-batch-size 1024
-```
-
-Run the cloud backend with the trained neural-network IDS:
-
-```bash
-python3 cloud.py --host 0.0.0.0 --port 9000 --verbose --log results/cloud_ids/cloud_requests_log.csv
-```
-
-To test the cloud IDS directly on a CSV:
+Test the cloud IDS directly on a CSV:
 
 ```bash
 python3 cloud_ids_predictor.py --input-csv "ids_data/unsw_nb15/Training and Testing Sets/UNSW_NB15_testing-set.csv" --output-csv results/cloud_ids/cloud_ids_predictions.csv
 ```
 
-Future work:
+## Useful Demo Artifacts
 
-- implement a packet-to-flow extractor, then connect live capture or pcap replay
-  to that extractor
-- reduce dropped flows further by tuning queue thresholds, measuring real queue
-  length, and retraining RL with stronger drop-avoidance reward shaping
-- optionally migrate the saved policy to DQN/Double DQN/Dueling DQN
-- Currently, when the cloud backend (`cloud.py`) is started on VM2, it displays the model path and request log path. With `--verbose`, it also prints each received flow request and status.
+For report screenshots, the most useful outputs are:
 
-For easier debugging and demonstration, should include:
+```text
+results/cloud_ids/cloud_ids_model_comparison.csv
+results/cloud_ids/cloud_requests_log.csv
+results/edge_ids/edge_ids_offloading_demo.csv
+nids_offloading_results.csv
+```
 
-Logging incoming requests (e.g., timestamp, source IP, flow ID).
+Useful screenshots:
 
-Displaying processing status on screen (e.g., “Received flow #42, offloaded to cloud IDS”).
+- cloud IDS training output,
+- cloud server running with `--verbose`,
+- edge runtime output showing local/offload/final prediction,
+- model comparison CSV or chart,
+- action distribution / dropped flow count if generated.
 
-Returning confirmation messages to the edge client and logging them.
+## Future Work
 
-Optional verbose/debug mode to toggle detailed runtime information.
-
-This will make it clearer that the system is actively handling traffic, not just passively listening.
-
-- shape reward: tune parameter so RL learns smater policies 
+- Implement a packet-to-flow extractor and connect live capture or pcap replay.
+- Replace simulated edge metrics with real VM measurements.
+- Reconsider whether `flow_size` should remain in the RL state if offloading
+  must be decided before reading traffic information.
+- Reduce dropped flows further by tuning queue thresholds, measuring real queue
+  length, and retraining RL with stronger drop-avoidance reward shaping.
+- Improve verbose runtime logging with timestamp, source IP, flow ID, selected
+  action, prediction, confidence, and final result.
+- Add stronger communication handling for invalid messages, timeouts, and cloud
+  unavailability.
+- Add authentication/encryption for edge-cloud communication.
+- Optionally migrate the saved policy to DQN, Double DQN, or Dueling DQN.

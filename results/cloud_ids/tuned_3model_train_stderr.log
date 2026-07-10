@@ -1,0 +1,2 @@
+D:\Documents\Course's Project\i-have-a-simple-ids-to\offloading-for-nids-main\.venv\Lib\site-packages\sklearn\utils\validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(

@@ -1,43 +1,43 @@
 {
   "best_model": "catboost",
   "selection_metric": "balanced_accuracy",
-  "best_model_path": "D:\\Documents\\Course's Project\\i-have-a-simple-ids-to\\offloading-for-nids-main\\models\\cloud_ids\\best_cloud_ids_model.joblib",
+  "best_model_path": "d:\\Documents\\Course's Project\\i-have-a-simple-ids-to\\offloading-for-nids-main\\models\\cloud_ids\\best_cloud_ids_model.joblib",
   "all_models": [
     {
       "model": "neural_net",
-      "accuracy": 0.6681970558227663,
-      "balanced_accuracy": 0.601783518914657,
-      "macro_f1": 0.42878415460049546,
-      "weighted_f1": 0.7229400609483577,
-      "macro_precision": 0.4364570981123542,
-      "macro_recall": 0.601783518914657,
-      "train_seconds": 1360.6191215515137,
-      "predict_seconds": 2.320145845413208,
-      "model_path": "D:\\Documents\\Course's Project\\i-have-a-simple-ids-to\\offloading-for-nids-main\\models\\cloud_ids\\neural_net.joblib"
+      "accuracy": 0.6555774182577856,
+      "balanced_accuracy": 0.5862828365765193,
+      "macro_f1": 0.40885181867079534,
+      "weighted_f1": 0.7118147801959105,
+      "macro_precision": 0.428313733302251,
+      "macro_recall": 0.5862828365765193,
+      "train_seconds": 143.37732648849487,
+      "predict_seconds": 0.661501407623291,
+      "model_path": "d:\\Documents\\Course's Project\\i-have-a-simple-ids-to\\offloading-for-nids-main\\models\\cloud_ids\\neural_net.joblib"
     },
     {
       "model": "lightgbm",
-      "accuracy": 0.7222100762765389,
-      "balanced_accuracy": 0.6137828029508159,
-      "macro_f1": 0.5338950681838303,
-      "weighted_f1": 0.766828487522015,
-      "macro_precision": 0.5598026618947805,
-      "macro_recall": 0.6137828029508159,
-      "train_seconds": 1167.2575080394745,
-      "predict_seconds": 59.071640968322754,
-      "model_path": "D:\\Documents\\Course's Project\\i-have-a-simple-ids-to\\offloading-for-nids-main\\models\\cloud_ids\\lightgbm.joblib"
+      "accuracy": 0.718286935820823,
+      "balanced_accuracy": 0.6135130172011954,
+      "macro_f1": 0.5308370624384783,
+      "weighted_f1": 0.7633761703629434,
+      "macro_precision": 0.5589590269950329,
+      "macro_recall": 0.6135130172011954,
+      "train_seconds": 187.55381441116333,
+      "predict_seconds": 25.35529351234436,
+      "model_path": "d:\\Documents\\Course's Project\\i-have-a-simple-ids-to\\offloading-for-nids-main\\models\\cloud_ids\\lightgbm.joblib"
     },
     {
       "model": "catboost",
-      "accuracy": 0.6596948938444347,
-      "balanced_accuracy": 0.6376678410963252,
-      "macro_f1": 0.4302712472851802,
-      "weighted_f1": 0.7186160837556641,
-      "macro_precision": 0.45229944598947114,
-      "macro_recall": 0.6376678410963252,
-      "train_seconds": 1446.7239887714386,
-      "predict_seconds": 1.4259788990020752,
-      "model_path": "D:\\Documents\\Course's Project\\i-have-a-simple-ids-to\\offloading-for-nids-main\\models\\cloud_ids\\catboost.joblib"
+      "accuracy": 0.661322450566001,
+      "balanced_accuracy": 0.6333962116702349,
+      "macro_f1": 0.4330645190264108,
+      "weighted_f1": 0.7198966147062889,
+      "macro_precision": 0.4503025353632144,
+      "macro_recall": 0.6333962116702349,
+      "train_seconds": 688.3802437782288,
+      "predict_seconds": 1.3718774318695068,
+      "model_path": "d:\\Documents\\Course's Project\\i-have-a-simple-ids-to\\offloading-for-nids-main\\models\\cloud_ids\\catboost.joblib"
     }
   ]
 }

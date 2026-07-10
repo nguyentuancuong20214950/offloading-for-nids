@@ -1,0 +1,10 @@
+timestamp,source_ip,flow_id,reason,edge_prediction,edge_confidence,true_attack_cat,cloud_result,cloud_confidence,status,processing_time_ms
+2026-07-10 21:34:13,127.0.0.1,1,edge_predicted_attack,Fuzzers,0.4313269887361082,Normal,Shellcode,0.8230308016337107,processed,303.385
+2026-07-10 21:34:13,127.0.0.1,2,edge_predicted_attack,Fuzzers,0.7390982340447775,Normal,Fuzzers,0.5443164306739007,processed,34.32
+2026-07-10 21:34:14,127.0.0.1,3,edge_predicted_attack,Fuzzers,0.77842436454612,Normal,Fuzzers,0.7606756264976683,processed,34.427
+2026-07-10 21:34:14,127.0.0.1,4,edge_predicted_attack,Fuzzers,0.7901184562969076,Normal,Fuzzers,0.7392131868306673,processed,33.234
+2026-07-10 21:34:14,127.0.0.1,5,edge_predicted_attack,Fuzzers,0.7788654106221411,Normal,Fuzzers,0.8532688562621813,processed,35.502
+2026-07-10 21:34:14,127.0.0.1,6,edge_predicted_attack,Fuzzers,0.6965072161654609,Normal,Fuzzers,0.43298464042066687,processed,43.941
+2026-07-10 21:34:14,127.0.0.1,7,edge_predicted_attack,Fuzzers,0.7198692736752627,Normal,Fuzzers,0.5368548315168418,processed,22.184
+2026-07-10 21:34:14,127.0.0.1,8,edge_predicted_attack,Fuzzers,0.6247542282651872,Normal,Fuzzers,0.798180834191283,processed,32.188
+2026-07-10 21:34:55,127.0.0.1,1,edge_predicted_attack,Fuzzers,0.4313269887361081,Normal,Shellcode,0.8230308016337107,processed,69.172

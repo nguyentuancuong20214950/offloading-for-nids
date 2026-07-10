@@ -1,0 +1,121 @@
+Cloud IDS training rows: 175341, test rows: 82332, features: 42
+Classes: Analysis, Backdoor, DoS, Exploits, Fuzzers, Generic, Normal, Reconnaissance, Shellcode, Worms
+
+Training cloud neural_net...
+Iteration 1, loss = 0.92469273
+Validation score: 0.729341
+Iteration 2, loss = 0.69862918
+Validation score: 0.751526
+Iteration 3, loss = 0.65046139
+Validation score: 0.767665
+Iteration 4, loss = 0.62340433
+Validation score: 0.764870
+Iteration 5, loss = 0.60732265
+Validation score: 0.779869
+Iteration 6, loss = 0.58754666
+Validation score: 0.763673
+Iteration 7, loss = 0.57575197
+Validation score: 0.776960
+Iteration 8, loss = 0.56651430
+Validation score: 0.781751
+Iteration 9, loss = 0.55896611
+Validation score: 0.783405
+Iteration 10, loss = 0.55509396
+Validation score: 0.780610
+Iteration 11, loss = 0.54727549
+Validation score: 0.792130
+Iteration 12, loss = 0.54288860
+Validation score: 0.790875
+Iteration 13, loss = 0.53676891
+Validation score: 0.789222
+Iteration 14, loss = 0.53288721
+Validation score: 0.792643
+Iteration 15, loss = 0.52924715
+Validation score: 0.790020
+Iteration 16, loss = 0.52342747
+Validation score: 0.791503
+Iteration 17, loss = 0.52065954
+Validation score: 0.797776
+Iteration 18, loss = 0.51741453
+Validation score: 0.801996
+Iteration 19, loss = 0.51440362
+Validation score: 0.800285
+Iteration 20, loss = 0.51205842
+Validation score: 0.800912
+Iteration 21, loss = 0.50776960
+Validation score: 0.799544
+Iteration 22, loss = 0.50808714
+Validation score: 0.793613
+Iteration 23, loss = 0.50188119
+Validation score: 0.804277
+Iteration 24, loss = 0.49899325
+Validation score: 0.804904
+Iteration 25, loss = 0.49964032
+Validation score: 0.799031
+Iteration 26, loss = 0.49798115
+Validation score: 0.804163
+Iteration 27, loss = 0.49426572
+Validation score: 0.805988
+Iteration 28, loss = 0.49248085
+Validation score: 0.803365
+Iteration 29, loss = 0.49145543
+Validation score: 0.808839
+Iteration 30, loss = 0.49020229
+Validation score: 0.804220
+Iteration 31, loss = 0.48899150
+Validation score: 0.806672
+Iteration 32, loss = 0.48533476
+Validation score: 0.805532
+Iteration 33, loss = 0.48596154
+Validation score: 0.806615
+Iteration 34, loss = 0.48343052
+Validation score: 0.807414
+Iteration 35, loss = 0.48299260
+Validation score: 0.806958
+Iteration 36, loss = 0.48156686
+Validation score: 0.805589
+Iteration 37, loss = 0.47985692
+Validation score: 0.809296
+Iteration 38, loss = 0.47982163
+Validation score: 0.808554
+Iteration 39, loss = 0.47800694
+Validation score: 0.806672
+Iteration 40, loss = 0.47755442
+Validation score: 0.807927
+Iteration 41, loss = 0.47604956
+Validation score: 0.811862
+Iteration 42, loss = 0.47731327
+Validation score: 0.809182
+Iteration 43, loss = 0.47354403
+Validation score: 0.808725
+Iteration 44, loss = 0.47349722
+Validation score: 0.812147
+Iteration 45, loss = 0.47380086
+Validation score: 0.810208
+Iteration 46, loss = 0.47334725
+Validation score: 0.813972
+Iteration 47, loss = 0.46946796
+Validation score: 0.812946
+Iteration 48, loss = 0.46883474
+Validation score: 0.812432
+Iteration 49, loss = 0.46784948
+Validation score: 0.811292
+Iteration 50, loss = 0.46885952
+Validation score: 0.810550
+Iteration 51, loss = 0.46542341
+Validation score: 0.810094
+Iteration 52, loss = 0.46582404
+Validation score: 0.809866
+Iteration 53, loss = 0.46518426
+Validation score: 0.811805
+Iteration 54, loss = 0.46426309
+Validation score: 0.803650
+Iteration 55, loss = 0.46378710
+Validation score: 0.808611
+Validation score did not improve more than tol=0.000100 for 8 consecutive epochs. Stopping.
+neural_net: balanced_accuracy=0.4547, macro_f1=0.4276, accuracy=0.7615, train_time=431.0s
+
+Cloud model comparison saved to: D:\Documents\Course's Project\i-have-a-simple-ids-to\offloading-for-nids-main\results\cloud_ids\cloud_ids_model_comparison.csv
+Best cloud IDS model: neural_net -> D:\Documents\Course's Project\i-have-a-simple-ids-to\offloading-for-nids-main\models\cloud_ids\best_cloud_ids_model.joblib
+     model  accuracy  balanced_accuracy  macro_f1  weighted_f1  macro_precision  macro_recall  train_seconds  predict_seconds                                                                                                       model_path
+neural_net  0.761527           0.454656  0.427639     0.760307         0.519169      0.454656     431.006619         1.423221 D:\Documents\Course's Project\i-have-a-simple-ids-to\offloading-for-nids-main\models\cloud_ids\neural_net.joblib

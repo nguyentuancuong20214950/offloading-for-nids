@@ -1,0 +1,215 @@
+Cloud IDS training rows: 175341, test rows: 82332, features: 42
+Classes: Analysis, Backdoor, DoS, Exploits, Fuzzers, Generic, Normal, Reconnaissance, Shellcode, Worms
+
+Training cloud neural_net...
+Iteration 1, loss = 1.86974547
+Validation score: 0.439318
+Iteration 2, loss = 1.39205828
+Validation score: 0.500137
+Iteration 3, loss = 1.29701606
+Validation score: 0.500545
+Iteration 4, loss = 1.25844961
+Validation score: 0.518211
+Iteration 5, loss = 1.22700757
+Validation score: 0.529159
+Iteration 6, loss = 1.19994261
+Validation score: 0.535724
+Iteration 7, loss = 1.17963125
+Validation score: 0.512937
+Iteration 8, loss = 1.15353323
+Validation score: 0.556416
+Iteration 9, loss = 1.15476914
+Validation score: 0.536104
+Iteration 10, loss = 1.13421075
+Validation score: 0.525629
+Iteration 11, loss = 1.12289304
+Validation score: 0.561559
+Iteration 12, loss = 1.10668799
+Validation score: 0.547884
+Iteration 13, loss = 1.08342285
+Validation score: 0.513133
+Iteration 14, loss = 1.08292715
+Validation score: 0.559654
+Iteration 15, loss = 1.06858275
+Validation score: 0.564918
+Iteration 16, loss = 1.05622966
+Validation score: 0.565996
+Iteration 17, loss = 1.05636808
+Validation score: 0.591181
+Iteration 18, loss = 1.02190332
+Validation score: 0.584763
+Iteration 19, loss = 1.00410849
+Validation score: 0.571727
+Iteration 20, loss = 0.99560775
+Validation score: 0.615371
+Iteration 21, loss = 0.99136504
+Validation score: 0.603344
+Iteration 22, loss = 0.96951885
+Validation score: 0.611526
+Iteration 23, loss = 0.96314850
+Validation score: 0.621031
+Iteration 24, loss = 0.93828303
+Validation score: 0.589051
+Iteration 25, loss = 0.95877622
+Validation score: 0.635046
+Iteration 26, loss = 0.92483534
+Validation score: 0.628925
+Iteration 27, loss = 0.92325782
+Validation score: 0.612365
+Iteration 28, loss = 0.91249108
+Validation score: 0.633518
+Iteration 29, loss = 0.91809068
+Validation score: 0.622986
+Iteration 30, loss = 0.90351950
+Validation score: 0.608201
+Iteration 31, loss = 0.92380402
+Validation score: 0.636289
+Iteration 32, loss = 0.88194606
+Validation score: 0.634610
+Iteration 33, loss = 0.87496295
+Validation score: 0.633811
+Iteration 34, loss = 0.88645776
+Validation score: 0.635046
+Iteration 35, loss = 0.87620474
+Validation score: 0.632522
+Iteration 36, loss = 0.88806936
+Validation score: 0.645212
+Iteration 37, loss = 0.87772921
+Validation score: 0.640086
+Iteration 38, loss = 0.87330757
+Validation score: 0.647679
+Iteration 39, loss = 0.87378849
+Validation score: 0.649234
+Iteration 40, loss = 0.86902601
+Validation score: 0.634616
+Iteration 41, loss = 0.85929296
+Validation score: 0.634459
+Iteration 42, loss = 0.87074926
+Validation score: 0.639100
+Iteration 43, loss = 0.85862973
+Validation score: 0.634337
+Iteration 44, loss = 0.84930709
+Validation score: 0.628829
+Iteration 45, loss = 0.85147721
+Validation score: 0.653479
+Iteration 46, loss = 0.82582012
+Validation score: 0.647965
+Iteration 47, loss = 0.83602402
+Validation score: 0.647502
+Iteration 48, loss = 0.83609682
+Validation score: 0.646436
+Iteration 49, loss = 0.83549384
+Validation score: 0.635365
+Iteration 50, loss = 0.84192663
+Validation score: 0.635287
+Iteration 51, loss = 0.82709943
+Validation score: 0.635010
+Iteration 52, loss = 0.83048817
+Validation score: 0.647450
+Iteration 53, loss = 0.81873828
+Validation score: 0.652837
+Iteration 54, loss = 0.83707734
+Validation score: 0.655082
+Iteration 55, loss = 0.82294228
+Validation score: 0.643069
+Iteration 56, loss = 0.81937036
+Validation score: 0.628726
+Iteration 57, loss = 0.82848543
+Validation score: 0.653811
+Iteration 58, loss = 0.81888670
+Validation score: 0.647267
+Iteration 59, loss = 0.81930525
+Validation score: 0.498725
+Iteration 60, loss = 0.90090220
+Validation score: 0.640250
+Iteration 61, loss = 0.81607177
+Validation score: 0.627811
+Iteration 62, loss = 0.81474705
+Validation score: 0.615603
+Iteration 63, loss = 0.81023424
+Validation score: 0.661029
+Iteration 64, loss = 0.80813820
+Validation score: 0.648191
+Iteration 65, loss = 0.81747991
+Validation score: 0.655333
+Iteration 66, loss = 0.82056752
+Validation score: 0.638163
+Iteration 67, loss = 0.80633941
+Validation score: 0.650803
+Iteration 68, loss = 0.81194311
+Validation score: 0.652481
+Iteration 69, loss = 0.79989250
+Validation score: 0.639334
+Iteration 70, loss = 0.79638577
+Validation score: 0.633373
+Iteration 71, loss = 0.80683137
+Validation score: 0.660370
+Iteration 72, loss = 0.80584585
+Validation score: 0.666188
+Iteration 73, loss = 0.79010838
+Validation score: 0.633252
+Iteration 74, loss = 0.80071917
+Validation score: 0.636186
+Iteration 75, loss = 0.80114469
+Validation score: 0.657354
+Iteration 76, loss = 0.78862120
+Validation score: 0.651689
+Iteration 77, loss = 0.77871226
+Validation score: 0.643741
+Iteration 78, loss = 0.79016139
+Validation score: 0.662009
+Iteration 79, loss = 0.78614194
+Validation score: 0.663043
+Iteration 80, loss = 0.77377599
+Validation score: 0.655167
+Iteration 81, loss = 0.78488083
+Validation score: 0.645057
+Iteration 82, loss = 0.77858034
+Validation score: 0.644142
+Iteration 83, loss = 0.79165377
+Validation score: 0.663928
+Iteration 84, loss = 0.80014729
+Validation score: 0.661687
+Iteration 85, loss = 0.77914929
+Validation score: 0.668806
+Iteration 86, loss = 0.77950619
+Validation score: 0.660179
+Iteration 87, loss = 0.77535535
+Validation score: 0.648907
+Iteration 88, loss = 0.77047079
+Validation score: 0.652455
+Iteration 89, loss = 0.77859059
+Validation score: 0.652255
+Iteration 90, loss = 0.81002477
+Validation score: 0.623278
+Iteration 91, loss = 0.81039319
+Validation score: 0.666500
+Iteration 92, loss = 0.78335494
+Validation score: 0.656418
+Iteration 93, loss = 0.77261878
+Validation score: 0.661371
+Iteration 94, loss = 0.77622758
+Validation score: 0.664660
+Iteration 95, loss = 0.77632869
+Validation score: 0.662512
+Iteration 96, loss = 0.77354740
+Validation score: 0.657478
+Iteration 97, loss = 0.76768123
+Validation score: 0.658985
+Iteration 98, loss = 0.77334496
+Validation score: 0.651270
+Validation score did not improve more than tol=0.000100 for 12 consecutive epochs. Stopping.
+neural_net: balanced_accuracy=0.6018, macro_f1=0.4288, accuracy=0.6682, train_time=1360.6s
+
+Training cloud lightgbm...
+lightgbm: balanced_accuracy=0.6138, macro_f1=0.5339, accuracy=0.7222, train_time=1167.3s
+
+Training cloud catboost...
+catboost: balanced_accuracy=0.6377, macro_f1=0.4303, accuracy=0.6597, train_time=1446.7s
+
+Cloud model comparison saved to: D:\Documents\Course's Project\i-have-a-simple-ids-to\offloading-for-nids-main\results\cloud_ids\cloud_ids_model_comparison.csv
+Best cloud IDS model: catboost -> D:\Documents\Course's Project\i-have-a-simple-ids-to\offloading-for-nids-main\models\cloud_ids\best_cloud_ids_model.joblib
+     model  accuracy  balanced_accuracy  macro_f1  weighted_f1  macro_precision  macro_recall  train_seconds  predict_seconds                                                                                                       model_path
+  catboost  0.659695           0.637668  0.430271     0.718616         0.452299      0.637668    1446.723989         1.425979   D:\Documents\Course's Project\i-have-a-simple-ids-to\offloading-for-nids-main\models\cloud_ids\catboost.joblib
+  lightgbm  0.722210           0.613783  0.533895     0.766828         0.559803      0.613783    1167.257508        59.071641   D:\Documents\Course's Project\i-have-a-simple-ids-to\offloading-for-nids-main\models\cloud_ids\lightgbm.joblib
+neural_net  0.668197           0.601784  0.428784     0.722940         0.436457      0.601784    1360.619122         2.320146 D:\Documents\Course's Project\i-have-a-simple-ids-to\offloading-for-nids-main\models\cloud_ids\neural_net.joblib

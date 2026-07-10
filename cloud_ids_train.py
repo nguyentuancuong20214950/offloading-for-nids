@@ -354,7 +354,7 @@ def parse_args():
     parser.add_argument("--nn-verbose", action="store_true")
     parser.add_argument(
         "--models",
-        default="neural_net",
+        default="neural_net,lightgbm,catboost",
         help="Comma-separated cloud models to train: neural_net,lightgbm,catboost",
     )
     return parser.parse_args()
