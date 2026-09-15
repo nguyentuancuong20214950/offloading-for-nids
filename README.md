@@ -277,7 +277,7 @@ This creates:
 offload_q_table.json
 ```
 
-## Quick Local Replay Simulation
+## Quick comparison among local-only, simple threshold, and RL adaptive offloading policies
 
 Run a local comparison on UNSW-NB15 flow feature rows:
 
